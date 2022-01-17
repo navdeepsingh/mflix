@@ -53,6 +53,9 @@ export default class MoviesDAO {
     Remember that in MongoDB, the $in operator can be used with a list to
     match one or more values of a specific field.
     */
+    if (!Array.isArray(countries) || countries?.length === 0) {
+      return []
+    }
 
     let cursor
     try {
@@ -61,7 +64,15 @@ export default class MoviesDAO {
       // and _id. Do not put a limit in your own implementation, the limit
       // here is only included to avoid sending 46000 documents down the
       // wire.
-      cursor = await movies.find().limit(1)
+
+      cursor = await movies.find(
+        {
+          countries: { $in: countries },
+        },
+        {
+          projection: { title: 1 },
+        },
+      )
     } catch (e) {
       console.error(`Unable to issue find command, ${e}`)
       return []
@@ -296,9 +307,9 @@ export default class MoviesDAO {
       const pipeline = [
         {
           $match: {
-            _id: ObjectId(id)
-          }
-        }
+            _id: ObjectId(id),
+          },
+        },
       ]
       return await movies.aggregate(pipeline).next()
     } catch (e) {
