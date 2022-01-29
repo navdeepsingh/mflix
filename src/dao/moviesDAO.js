@@ -116,18 +116,9 @@ export default class MoviesDAO {
    * @returns {QueryParams} The QueryParams for genre search
    */
   static genreSearchQuery(genre) {
-    /**
-    Ticket: Text and Subfield Search
-
-    Given an array of one or more genres, construct a query that searches
-    MongoDB for movies with that genre.
-    */
-
     const searchGenre = Array.isArray(genre) ? genre : genre.split(", ")
 
-    // TODO Ticket: Text and Subfield Search
-    // Construct a query that will search for the chosen genre.
-    const query = {}
+    const query = { genres: { $in: searchGenre } }
     const project = {}
     const sort = DEFAULT_SORT
 
@@ -205,6 +196,9 @@ export default class MoviesDAO {
     const queryPipeline = [
       matchStage,
       sortStage,
+      skipStage,
+      limitStage,
+      facetStage,
       // TODO Ticket: Faceted Search
       // Add the stages to queryPipeline in the correct order.
     ]
@@ -259,18 +253,7 @@ export default class MoviesDAO {
       return { moviesList: [], totalNumMovies: 0 }
     }
 
-    /**
-    Ticket: Paging
-
-    Before this method returns back to the API, use the "moviesPerPage" and
-    "page" arguments to decide the movies to display.
-
-    Paging can be implemented by using the skip() and limit() cursor methods.
-    */
-
-    // TODO Ticket: Paging
-    // Use the cursor to only return the movies that belong on the current page
-    const displayCursor = cursor.limit(moviesPerPage)
+    const displayCursor = cursor.skip(moviesPerPage * page).limit(moviesPerPage)
 
     try {
       const moviesList = await displayCursor.toArray()
