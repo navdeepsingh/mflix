@@ -55,7 +55,7 @@ export default class UsersDAO {
     const { name, email, password } = userInfo
 
     try {
-      await users.insertOne({ name, email, password })
+      await users.insertOne({ name, email, password }, { w: "majority" })
       return { success: true }
     } catch (e) {
       if (String(e).startsWith("MongoError: E11000 duplicate key error")) {
@@ -161,8 +161,9 @@ export default class UsersDAO {
       // TODO Ticket: User Preferences
       // Use the data in "preferences" to update the user's preferences.
       const updateResponse = await users.updateOne(
-        { someField: someValue },
-        { $set: { someOtherField: someOtherValue } },
+        { email },
+        { $set: { preferences } },
+        { upsert: true },
       )
 
       if (updateResponse.matchedCount === 0) {
